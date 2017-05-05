@@ -27,8 +27,8 @@ public class GameState {
 				case "connect":
 					handleConnect(msg);
 					break;
-				case "update":
-					handleUpdate(msg);
+				case "close":
+					handleClose(msg);
 					break;
 				case "disconnect":
 					handleDisconnect(msg);
@@ -54,12 +54,12 @@ public class GameState {
 			playerID = obj.get("user").toString();
 			posx = Float.parseFloat(obj.get("posx").toString());
 			posy = Float.parseFloat(obj.get("posy").toString());
-			System.out.println("POSX: " + posx+ " POSY: " + posy);
+//			System.out.println("POSX: " + posx+ " POSY: " + posy);
 			lastUpdate = Instant.parse(obj.get("lastUpdate").toString());
 			boolean inStates = false;
 			for(PlayerState ps : playStates){
 				if(ps.id.equals(playerID)){
-					System.out.println("Update User: " + playerID);
+//					System.out.println("Update User: " + playerID);
 					inStates = true;
 					ps.posx = posx;
 					ps.posy = posy;
@@ -67,7 +67,7 @@ public class GameState {
 				}
 			}
 			if(!inStates){
-				System.out.println("Create User: " + playerID);
+//				System.out.println("Create User: " + playerID);
 				playStates.add(new PlayerState(playerID,posx,posy,Instant.now()));
 			}
 			
@@ -77,30 +77,22 @@ public class GameState {
 		}
 	}
 
-	private void handleUpdate(String msg) {
+	private void handleClose(String msg) {
 		JSONParser parser = new JSONParser();
 		String playerID;
-		float posx;
-		float posy;
+		float posx = 0;
+		float posy = 0;
 		Instant lastUpdate;
 
 		try{
 			JSONObject obj = (JSONObject)parser.parse(msg);
 			playerID = obj.get("user").toString();
-			posx = Float.parseFloat(obj.get("posx").toString());
-			posy = Float.parseFloat(obj.get("posy").toString());
 			lastUpdate = Instant.parse(obj.get("lastUpdate").toString());
 			boolean inStates = false;
 			for(PlayerState ps : playStates){
 				if(ps.id.equals(playerID)){
-					inStates = true;
-					ps.posx = posx;
-					ps.posy = posy;
-					ps.time = Instant.now();
+					playStates.remove(ps);
 				}
-			}
-			if(!inStates){
-				playStates.add(new PlayerState(playerID,posx,posy,Instant.now()));
 			}
 			
 		} catch(Exception pe){

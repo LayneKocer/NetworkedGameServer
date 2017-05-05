@@ -17,8 +17,9 @@ public class GameServer {
 
 	private static final List<GameServer> connections = new ArrayList<>();
 	private Session session;
+
 	public static GameState game;
-	static Timer timer;
+	public static Timer timer;
 	
 	public GameServer() {
 		System.out.println("The Constructor was called");
@@ -44,16 +45,29 @@ public class GameServer {
 	@OnOpen
 	public void onOpen(Session session){
 		if(this.game == null){
-			System.out.println("Game Being Initialized");
 			this.game = new GameState();
-			System.out.println("Game Initialized");
 			this.timer = new Timer();
 			this.timer.schedule(new TimerTask() {
 				@Override
 				public void run() {
-					SendUpdate();
+					if(game.playStates.size() != 0){
+						SendUpdate();
+					}
 				}
-			}, 0, 500);
+			}, 0, 100);
+			this.timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					for(GameServer gs : connections){
+						if(!gs.session.isOpen()){
+							connections.remove(gs);
+						}
+					}
+					if(connections.size() == 0){
+						game.playStates.clear();
+					}
+				}
+			}, 0, 1000);
 		}
 		this.session = session;
 		this.connections.add(this);
@@ -74,6 +88,9 @@ public class GameServer {
 				System.out.println(session.getId() + " Was Removed");
 				connections.remove(gs);
 			}
+		}
+		if(connections.size() == 0){
+			this.game.playStates.clear();
 		}
 	}
 
